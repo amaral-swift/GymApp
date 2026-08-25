@@ -11,9 +11,10 @@ import SwiftData
 @Model
 final class Workout {
     var name: String
-    var exerciseSets: [ExerciseSet]
+    @Relationship(deleteRule: .nullify, inverse: \ExerciseSet.workout) var exerciseSets: [ExerciseSet] = []
     var weekDay: weekDay
     var type: workoutType
+    var routineTemplate: [RoutineTemplate]? = []
     
     init(name: String, exerciseSets: [ExerciseSet], weekDay: weekDay, type: workoutType) {
         self.name = name

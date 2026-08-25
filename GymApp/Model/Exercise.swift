@@ -14,7 +14,8 @@ final class Exercise {
     var series: Int
     var repetition: Int
     var rest: Int
-    
+    var exerciseSets: [ExerciseSet] = []
+
     init(name: String, series: Int, repetition: Int, rest: Int) {
         self.name = name
         self.series = series

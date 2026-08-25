@@ -11,8 +11,9 @@ import SwiftData
 @Model
 final class ExerciseSet {
     var name: String
-    var exercises: [Exercise]
-
+    @Relationship(deleteRule: .nullify, inverse: \Exercise.exerciseSets) var exercises: [Exercise] = []
+    var workout: [Workout]? = []
+    
     init(name: String, exercises: [Exercise]) {
         self.name = name
         self.exercises = exercises
