@@ -19,14 +19,17 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            if routineTemapletes.isEmpty {
-                ContentUnavailableView("No Routines", image: "dumbbell", description: Text("Add a routine to get started"))
-            }
-            List {
-                ForEach(routineTemapletes) { routine in
-                    Section(routine.name) {
-                        ForEach(routine.workouts) { workout in
-                            NavigationLink(workout.name, destination: WorkoutView(workout: workout))
+            Group {
+                if routineTemapletes.isEmpty {
+                    ContentUnavailableView("No Routines", systemImage: "dumbbell", description: Text("Add a routine to get started"))
+                } else {
+                    List {
+                        ForEach(routineTemapletes) { routine in
+                            Section(routine.name) {
+                                ForEach(routine.workouts) { workout in
+                                    NavigationLink(workout.name, destination: WorkoutView(workout: workout))
+                                }
+                            }
                         }
                     }
                 }
