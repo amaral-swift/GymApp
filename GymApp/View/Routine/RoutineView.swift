@@ -16,7 +16,7 @@ struct RoutineView: View {
         NavigationStack {
             Group {
                 if routineTemapletes.isEmpty {
-                    ContentUnavailableView("Sem rotinas", systemImage: "dumbbell", description: Text("Adicione uma rotina para começar"))
+                    ContentUnavailableView("Sem rotinas", systemImage: "list.bullet", description: Text("Adicione uma rotina para começar"))
                 } else {
                     List {
                         ForEach(routineTemapletes) { routine in

@@ -11,7 +11,15 @@ struct WorkoutView: View {
     let workout: Workout
     
     var body: some View {
-        Text(workout.name)
+        NavigationStack {
+            VStack {
+                Text(workout.name)
+                ForEach(workout.exerciseSets) { exerciseSet in
+                    Text(exerciseSet.name)
+                }
+            }
+            .navigationTitle(workout.name)
+        }
     }
 }
 

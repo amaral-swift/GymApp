@@ -29,7 +29,7 @@ struct GymAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Tabbar()
         }
         .modelContainer(sharedModelContainer)
     }
