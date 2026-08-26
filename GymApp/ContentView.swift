@@ -40,15 +40,11 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem {
                     Button(action: addWorkout) {
-                        Label("Add Sample Data", systemImage: "dumbbell")
-                    }
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
                         Label("Add Sample Data", systemImage: "plus")
                     }
                 }
             }
+            .navigationTitle("Treinos")
         }
     }
     

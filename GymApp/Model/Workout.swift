@@ -15,7 +15,7 @@ final class Workout {
     var weekDay: weekDay
     var type: workoutType
     var routineTemplate: [RoutineTemplate]? = []
-    
+        
     init(name: String, exerciseSets: [ExerciseSet], weekDay: weekDay, type: workoutType) {
         self.name = name
         self.exerciseSets = exerciseSets
@@ -28,6 +28,8 @@ enum weekDay: String, Codable {
     case monday, tuesday, wednesday, thursday, friday, saturday, sunday
 }
 
-enum workoutType: String, Codable {
+enum workoutType: String, CaseIterable, Identifiable, Codable {
     case ABC, ABCD, ABCAB
+    
+    var id: Self { self }
 }
