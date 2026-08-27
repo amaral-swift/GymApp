@@ -9,8 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct ExercisesView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query private var exercises: [Exercise]
     @State private var addingExercise: Bool = false
+    @State private var isEditing: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -22,6 +24,7 @@ struct ExercisesView: View {
                         ForEach(exercises) { exercise in
                             Text(exercise.name)
                         }
+                        .onDelete(perform: deleteExercise)
                     }
                 }
             }
@@ -36,8 +39,23 @@ struct ExercisesView: View {
                         Label("Add exercise", systemImage: "plus")
                     }
                 }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(isEditing ? "Concluído" : "Editar") {
+                        withAnimation {
+                            isEditing.toggle()
+                        }
+                    }
+                }
             }
             .navigationTitle("Exercícios")
+        }
+    }
+    
+    private func deleteExercise(offset: IndexSet) {
+        withAnimation {
+            for index in offset {
+                modelContext.delete(exercises[index])
+            }
         }
     }
 }

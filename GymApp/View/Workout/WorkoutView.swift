@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct WorkoutView: View {
+    @Environment(\.modelContext) private var modelContext
+    @State private var isEditing: Bool = false
     let workout: Workout
     
     var body: some View {
@@ -24,5 +27,5 @@ struct WorkoutView: View {
 }
 
 #Preview {
-//    WorkoutView()
+    //    WorkoutView()
 }
