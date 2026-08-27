@@ -52,16 +52,15 @@ struct AddWorkoutView: View {
                     } label: {
                         Label("Salvar", systemImage: "checkmark")
                     }
+                    .disabled(name.isEmpty)
                 }
             }
         }
     }
     
-
     private func saveWorkout() {
         let workout = Workout(name: name, exerciseSets: [], weekDay: workoutDay, type: type)
         modelContext.insert(workout)
-        selectedRoutineTemplate?.workouts.append(workout)
     }
 }
 

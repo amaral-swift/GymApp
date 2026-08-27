@@ -18,22 +18,22 @@ struct AddExerciseView: View {
     var body: some View {
         NavigationStack {
             Form {
-                    TextField("Nome", text: $exerciseName)
-                    Picker("Séries", selection: $seriesQuantity) {
-                        ForEach(1...20, id: \.self) { i in
-                            Text("\(i)")
-                        }
+                TextField("Nome", text: $exerciseName)
+                Picker("Séries", selection: $seriesQuantity) {
+                    ForEach(1...20, id: \.self) { i in
+                        Text("\(i)")
                     }
-                    Picker("Repetições", selection: $repetitionQuantity) {
-                        ForEach(1...50, id: \.self) { j in
-                            Text("\(j)")
-                        }
+                }
+                Picker("Repetições", selection: $repetitionQuantity) {
+                    ForEach(1...50, id: \.self) { j in
+                        Text("\(j)")
                     }
+                }
                 HStack {
                     Text("Tempo de descanso")
-                
+                    
                     Spacer()
-
+                    
                     TextField("0", value: $restTime, format: .number)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
@@ -63,7 +63,8 @@ struct AddExerciseView: View {
     }
     
     private func addExercise() {
-        let exercise = Exercise(name: exerciseName, series: seriesQuantity, repetition: repetitionQuantity, rest: restTime!)
+        guard let restTime else { return }
+        let exercise = Exercise(name: exerciseName, series: seriesQuantity, repetition: repetitionQuantity, rest: restTime)
         modelContext.insert(exercise)
     }
 }

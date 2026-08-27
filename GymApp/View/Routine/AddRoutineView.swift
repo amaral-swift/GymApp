@@ -6,13 +6,75 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddRoutineView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workouts: [Workout] = []
+    @State private var selectedWorkouts: [Workout?] = []
+    @State private var routineName: String = ""
+    
     var body: some View {
-        Text("Adicionar rotina")
+        NavigationStack {
+            Form {
+                TextField("Nome", text: $routineName)
+                Section("Selecione os treinos da rotina") {
+                    ForEach(workouts) { workout in
+                        Button {
+                            toggleSelection(for: workout)
+                        } label: {
+                            HStack {
+                                Text(workout.name)
+                                Spacer()
+                                if selectedWorkouts.contains(where: { $0?.id == workout.id }) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                } else {
+                                    Image(systemName: "checkemark.circle")
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        saveRoutine()
+                        dismiss()
+                    } label: {
+                        Label("Salvar", systemImage: "checkmark")
+                    }
+                    .disabled(selectedWorkouts.isEmpty || routineName.isEmpty)
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Voltar", systemImage: "chevron.left")
+                    }
+                }
+            }
+            .navigationTitle("Adicionar rotina")
+        }
+    }
+    
+    private func toggleSelection(for workout: Workout) {
+        if let index = selectedWorkouts.firstIndex(where: { $0?.id == workout.id }) {
+            selectedWorkouts.remove(at: index)
+        } else {
+            selectedWorkouts.append(workout)
+        }
+    }
+
+    private func saveRoutine() {
+        let newRoutine = RoutineTemplate(name: routineName, workouts: selectedWorkouts as! [Workout])
+        modelContext.insert(newRoutine)
+        
     }
 }
 
 #Preview {
-    AddRoutineView()
+//    AddRoutineView()
 }

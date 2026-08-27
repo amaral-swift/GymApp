@@ -30,7 +30,7 @@ struct RoutineView: View {
                 }
             }
             .sheet(isPresented: $addingRoutine) {
-                // sheet para adicionar rotina
+                AddRoutineView()
             }
             .toolbar {
                 ToolbarItem {
