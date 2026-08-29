@@ -12,7 +12,6 @@ struct ExercisesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var exercises: [Exercise]
     @State private var addingExercise: Bool = false
-    @State private var isEditing: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -37,13 +36,6 @@ struct ExercisesView: View {
                         addingExercise = true
                     } label: {
                         Label("Add exercise", systemImage: "plus")
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(isEditing ? "Concluído" : "Editar") {
-                        withAnimation {
-                            isEditing.toggle()
-                        }
                     }
                 }
             }

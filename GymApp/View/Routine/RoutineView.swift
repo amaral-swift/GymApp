@@ -12,7 +12,6 @@ struct RoutineView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var routineTemapletes: [RoutineTemplate]
     @State private var addingRoutine: Bool = false
-    @State private var isEditing: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -41,13 +40,6 @@ struct RoutineView: View {
                         addingRoutine = true
                     } label: {
                         Label("Add Sample Data", systemImage: "plus")
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(isEditing ? "Concluído" : "Editar") {
-                        withAnimation {
-                            isEditing.toggle()
-                        }
                     }
                 }
             }

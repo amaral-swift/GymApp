@@ -10,13 +10,8 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-    @Query private var exerciseSets: [ExerciseSet]
-    @Query private var exercises: [Exercise]
-    @Query private var routineTemapletes: [RoutineTemplate]
     @Query private var workouts: [Workout]
     @State private var addingWorkout: Bool = false
-    @State private var isEditing: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -26,7 +21,20 @@ struct ContentView: View {
                 } else {
                     List {
                         ForEach(workouts) { workout in
-                            NavigationLink(workout.name, destination: WorkoutView(workout: workout))
+                            NavigationLink(destination: WorkoutView(workout: workout)) {
+                                VStack(alignment: .leading) {
+                                    Text(workout.name)
+                                    if let routineTemplate = workout.routineTemplate, !routineTemplate.isEmpty {
+                                        HStack {
+                                            Text("Rotinas:")
+                                                .bold()
+                                            Text(routineTemplate.map(\.name).joined(separator: ", "))
+                                        }
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
                         }
                         .onDelete(perform: deleteWorkout)
                     }
@@ -39,13 +47,6 @@ struct ContentView: View {
                 ToolbarItem {
                     Button(action: addWorkout) {
                         Label("Add Workout", systemImage: "plus")
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(isEditing ? "Concluído" : "Editar") {
-                        withAnimation {
-                            isEditing.toggle()
-                        }
                     }
                 }
             }
@@ -70,14 +71,6 @@ struct ContentView: View {
     private func addWorkout() {
         withAnimation {
             addingWorkout = true
-        }
-    }
-    
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
         }
     }
     
