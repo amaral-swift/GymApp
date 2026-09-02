@@ -59,7 +59,7 @@ struct AddWorkoutView: View {
     }
     
     private func saveWorkout() {
-        let workout = Workout(name: name, exerciseSets: [], weekDay: workoutDay, type: type)
+        let workout = Workout(name: name, exercises: [], weekDay: workoutDay, type: type)
         modelContext.insert(workout)
     }
 }

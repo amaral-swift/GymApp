@@ -15,6 +15,7 @@ final class Exercise {
     var repetition: Int
     var rest: Int
     var exerciseSets: [ExerciseSet] = []
+    var workouts: [Workout] = []
 
     init(name: String, series: Int, repetition: Int, rest: Int) {
         self.name = name

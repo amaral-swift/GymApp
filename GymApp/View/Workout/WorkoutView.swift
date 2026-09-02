@@ -17,8 +17,8 @@ struct WorkoutView: View {
         NavigationStack {
             VStack {
                 Text(workout.name)
-                ForEach(workout.exerciseSets) { exerciseSet in
-                    Text(exerciseSet.name)
+                ForEach(workout.exercises) { exercise in
+                    Text(exercise.name)
                 }
             }
             .navigationTitle(workout.name)

@@ -15,6 +15,8 @@ struct AddExerciseView: View {
     @State private var seriesQuantity: Int = 0
     @State private var repetitionQuantity: Int = 0
     @State private var restTime: Int? = nil
+    @State private var selectedWorkouts: [Workout?] = []
+    @Query private var workouts: [Workout] = []
     var body: some View {
         NavigationStack {
             Form {
@@ -39,6 +41,24 @@ struct AddExerciseView: View {
                         .multilineTextAlignment(.trailing)
                     Text("s")
                 }
+                
+                Section("Selecione os treinos da rotina") {
+                    ForEach(workouts) { workout in
+                        Button {
+                            toggleSelection(for: workout)
+                        } label: {
+                            HStack {
+                                Text(workout.name)
+                                Spacer()
+                                if selectedWorkouts.contains(where: { $0?.id == workout.id }) {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                }
+                
             }
             .navigationTitle("Adicionar exercício")
             .toolbar {
@@ -65,7 +85,16 @@ struct AddExerciseView: View {
     private func addExercise() {
         guard let restTime else { return }
         let exercise = Exercise(name: exerciseName, series: seriesQuantity, repetition: repetitionQuantity, rest: restTime)
+        exercise.workouts = selectedWorkouts.compactMap { $0 }
         modelContext.insert(exercise)
+    }
+    
+    private func toggleSelection(for workout: Workout) {
+        if let index = selectedWorkouts.firstIndex(where: { $0?.id == workout.id }) {
+            selectedWorkouts.remove(at: index)
+        } else {
+            selectedWorkouts.append(workout)
+        }
     }
 }
 

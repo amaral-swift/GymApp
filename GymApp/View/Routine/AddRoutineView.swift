@@ -28,9 +28,7 @@ struct AddRoutineView: View {
                                 Text(workout.name)
                                 Spacer()
                                 if selectedWorkouts.contains(where: { $0?.id == workout.id }) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                } else {
-                                    Image(systemName: "checkemark.circle")
+                                    Image(systemName: "checkmark")
                                 }
                             }
                         }
