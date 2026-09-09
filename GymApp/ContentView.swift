@@ -91,7 +91,8 @@ struct ContentView: View {
             Exercise(name: "Tríceps Corda", series: 3, repetition: 12, rest: 60),
             Exercise(name: "Tríceps Testa", series: 3, repetition: 10, rest: 60)
         ]
-        let treinoA = Workout(name: "Treino A - Peito, Ombro e Tríceps", exercises: peito + ombro + triceps, weekDay: .monday, type: .ABC)
+        let treinoA = Workout(name: "Treino A - Peito, Ombro e Tríceps", exerciseSets: [], weekDay: .monday, type: .ABC)
+        linkExercises(peito + ombro + triceps, to: treinoA)
 
         // Treino B - Costas e Bíceps
         let costas = [
@@ -105,7 +106,8 @@ struct ContentView: View {
             Exercise(name: "Rosca Alternada com Halteres", series: 3, repetition: 12, rest: 60),
             Exercise(name: "Rosca Scott", series: 3, repetition: 10, rest: 60)
         ]
-        let treinoB = Workout(name: "Treino B - Costas e Bíceps", exercises: costas + biceps, weekDay: .wednesday, type: .ABC)
+        let treinoB = Workout(name: "Treino B - Costas e Bíceps", exerciseSets: [], weekDay: .wednesday, type: .ABC)
+        linkExercises(costas + biceps, to: treinoB)
 
         // Treino C - Pernas e Panturrilha
         let pernas = [
@@ -119,7 +121,8 @@ struct ContentView: View {
             Exercise(name: "Panturrilha em Pé", series: 4, repetition: 20, rest: 45),
             Exercise(name: "Panturrilha Sentado", series: 3, repetition: 20, rest: 45)
         ]
-        let treinoC = Workout(name: "Treino C - Pernas e Panturrilha", exercises: pernas + panturrilha, weekDay: .friday, type: .ABC)
+        let treinoC = Workout(name: "Treino C - Pernas e Panturrilha", exerciseSets: [], weekDay: .friday, type: .ABC)
+        linkExercises(pernas + panturrilha, to: treinoC)
 
         let rotinaHipertrofia = RoutineTemplate(name: "Hipertrofia ABC", workouts: [treinoA, treinoB, treinoC])
 
@@ -130,7 +133,8 @@ struct ContentView: View {
             Exercise(name: "Remada com Halteres", series: 3, repetition: 12, rest: 60),
             Exercise(name: "Prancha Abdominal", series: 3, repetition: 30, rest: 45)
         ]
-        let treinoFullBodyA = Workout(name: "Full Body A", exercises: fullBodySegunda, weekDay: .tuesday, type: .ABC)
+        let treinoFullBodyA = Workout(name: "Full Body A", exerciseSets: [], weekDay: .tuesday, type: .ABC)
+        linkExercises(fullBodySegunda, to: treinoFullBodyA)
 
         let fullBodyQuinta = [
             Exercise(name: "Afundo com Halteres", series: 3, repetition: 12, rest: 60),
@@ -138,12 +142,20 @@ struct ContentView: View {
             Exercise(name: "Puxada Frontal", series: 3, repetition: 12, rest: 60),
             Exercise(name: "Abdominal Supra", series: 3, repetition: 20, rest: 45)
         ]
-        let treinoFullBodyB = Workout(name: "Full Body B", exercises: fullBodyQuinta, weekDay: .thursday, type: .ABC)
-        
+        let treinoFullBodyB = Workout(name: "Full Body B", exerciseSets: [], weekDay: .thursday, type: .ABC)
+        linkExercises(fullBodyQuinta, to: treinoFullBodyB)
+
         let rotinaIniciante = RoutineTemplate(name: "Full Body Iniciante", workouts: [treinoFullBodyA, treinoFullBodyB])
-        
+
         modelContext.insert(rotinaHipertrofia)
         modelContext.insert(rotinaIniciante)
+    }
+
+    private func linkExercises(_ exercises: [Exercise], to workout: Workout) {
+        for (index, exercise) in exercises.enumerated() {
+            let workoutExercise = WorkoutExercise(order: index, exercises: exercise, workouts: workout)
+            modelContext.insert(workoutExercise)
+        }
     }
 }
 

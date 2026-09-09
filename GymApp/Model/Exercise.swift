@@ -14,8 +14,7 @@ final class Exercise {
     var series: Int
     var repetition: Int
     var rest: Int
-    var exerciseSets: [ExerciseSet] = []
-    var workouts: [Workout] = []
+    @Relationship(deleteRule: .cascade, inverse: \WorkoutExercise.exercises) var exerciseSets: [WorkoutExercise] = []
 
     init(name: String, series: Int, repetition: Int, rest: Int) {
         self.name = name

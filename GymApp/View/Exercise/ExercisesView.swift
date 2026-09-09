@@ -55,7 +55,7 @@ struct ExercisesView: View {
                             HStack {
                                 Text(workout.name)
                                 Spacer()
-                                if exercise.workouts.contains(where: { $0.id == workout.id }) {
+                                if exercise.exerciseSets.contains(where: { $0.workouts?.id == workout.id }) {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -92,10 +92,12 @@ struct ExercisesView: View {
     }
 
     private func toggleWorkout(_ workout: Workout, for exercise: Exercise) {
-        if let index = exercise.workouts.firstIndex(where: { $0.id == workout.id }) {
-            exercise.workouts.remove(at: index)
+        if let existing = exercise.exerciseSets.first(where: { $0.workouts?.id == workout.id }) {
+            modelContext.delete(existing)
         } else {
-            exercise.workouts.append(workout)
+            let nextOrder = (workout.exerciseSets.map(\.order).max() ?? -1) + 1
+            let workoutExercise = WorkoutExercise(order: nextOrder, exercises: exercise, workouts: workout)
+            modelContext.insert(workoutExercise)
         }
     }
 }

@@ -85,8 +85,13 @@ struct AddExerciseView: View {
     private func addExercise() {
         guard let restTime else { return }
         let exercise = Exercise(name: exerciseName, series: seriesQuantity, repetition: repetitionQuantity, rest: restTime)
-        exercise.workouts = selectedWorkouts.compactMap { $0 }
         modelContext.insert(exercise)
+
+        for workout in selectedWorkouts.compactMap({ $0 }) {
+            let nextOrder = (workout.exerciseSets.map(\.order).max() ?? -1) + 1
+            let workoutExercise = WorkoutExercise(order: nextOrder, exercises: exercise, workouts: workout)
+            modelContext.insert(workoutExercise)
+        }
     }
     
     private func toggleSelection(for workout: Workout) {
