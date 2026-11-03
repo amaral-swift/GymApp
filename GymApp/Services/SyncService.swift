@@ -74,7 +74,7 @@ final class SyncService: ObservableObject {
                 sessionDate: SupabaseJSON.dateOnlyFormatter.string(from: item.sessionDate),
                 startedAt: item.startedAt, finishedAt: item.finishedAt,
                 cardioMinutes: item.cardioMinutes, cardioType: item.cardioType,
-                notes: item.notes, stravaActivityId: item.stravaActivityId, createdAt: item.createdAt
+                notes: item.notes, createdAt: item.createdAt
             )
             if await upsertRemote("workout_sessions", dto) { item.needsSync = false }
         }
@@ -182,12 +182,12 @@ final class SyncService: ObservableObject {
         if let existing = findSession(r.id, context) {
             existing.routineDay = day; existing.sessionDate = date; existing.startedAt = r.startedAt
             existing.finishedAt = r.finishedAt; existing.cardioMinutes = r.cardioMinutes
-            existing.cardioType = r.cardioType; existing.notes = r.notes; existing.stravaActivityId = r.stravaActivityId; existing.needsSync = false
+            existing.cardioType = r.cardioType; existing.notes = r.notes; existing.needsSync = false
         } else {
             let session = WorkoutSession(
                 id: r.id, routineDay: day, sessionDate: date, startedAt: r.startedAt, finishedAt: r.finishedAt,
                 cardioMinutes: r.cardioMinutes, cardioType: r.cardioType, notes: r.notes,
-                stravaActivityId: r.stravaActivityId, createdAt: r.createdAt, needsSync: false
+                createdAt: r.createdAt, needsSync: false
             )
             context.insert(session)
         }

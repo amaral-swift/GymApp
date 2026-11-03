@@ -47,7 +47,6 @@ struct RemoteWorkoutSession: Codable {
     let cardioMinutes: Int?
     let cardioType: String?
     let notes: String?
-    let stravaActivityId: Int64?
     let createdAt: Date
 }
 
