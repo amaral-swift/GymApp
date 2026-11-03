@@ -2,21 +2,28 @@
 //  GymAppApp.swift
 //  GymApp
 //
-//  Created by Gabriel Amaral on 24/08/26.
-//
 
 import SwiftUI
 import SwiftData
 
 @main
 struct GymAppApp: App {
+    @StateObject private var auth = SupabaseAuthManager()
+    @StateObject private var syncService: SyncService
+
+    init() {
+        let authManager = SupabaseAuthManager()
+        _auth = StateObject(wrappedValue: authManager)
+        _syncService = StateObject(wrappedValue: SyncService(auth: authManager))
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
-            Workout.self,
-            WorkoutExercise.self,
             Exercise.self,
-            RoutineTemplate.self,
+            RoutineDay.self,
+            RoutineExercise.self,
+            WorkoutSession.self,
+            LoggedSet.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -29,7 +36,15 @@ struct GymAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Tabbar()
+            Group {
+                if auth.isAuthenticated {
+                    RootTabView()
+                } else {
+                    AuthView()
+                }
+            }
+            .environmentObject(auth)
+            .environmentObject(syncService)
         }
         .modelContainer(sharedModelContainer)
     }
