@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 /// Cuida do login/cadastro no Supabase (via GoTrue) e guarda a sessão no Keychain.
 @MainActor

@@ -22,40 +22,47 @@ struct TodayView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if let today {
-                    Section {
-                        HStack {
-                            Text(today.name).font(.headline)
-                            Spacer()
-                            Text(RoutineDay.weekdayNames[today.weekday]).foregroundStyle(.secondary)
-                        }
-                    }
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppMetrics.spacing) {
+                    if let today {
+                        header(for: today)
 
-                    if let cardioType = today.cardioType {
-                        Section("Cardio") {
-                            cardioRow(type: cardioType, minMin: today.cardioMinutesMin, minMax: today.cardioMinutesMax, notes: today.notes)
+                        if let cardioType = today.cardioType {
+                            cardioCard(day: today, type: cardioType)
                         }
-                    }
 
-                    if !today.exercises.isEmpty {
-                        Section("Exercícios") {
-                            ForEach(today.exercises.sorted(by: { $0.position < $1.position })) { re in
-                                exerciseRow(re)
+                        if !today.exercises.isEmpty {
+                            SectionHeaderLabel(text: "Exercícios")
+                                .padding(.top, 4)
+                            VStack(spacing: 10) {
+                                ForEach(today.exercises.sorted(by: { $0.position < $1.position })) { re in
+                                    exerciseCard(re)
+                                }
                             }
                         }
-                    }
 
-                    if today.exercises.isEmpty && today.cardioType == nil {
-                        Section {
-                            Text("Dia de descanso. 🙌").foregroundStyle(.secondary)
+                        if today.exercises.isEmpty && today.cardioType == nil {
+                            VStack(spacing: 10) {
+                                Image(systemName: "moon.zzz.fill")
+                                    .font(.system(size: 34))
+                                    .foregroundStyle(AppColor.rest)
+                                Text("Dia de descanso")
+                                    .font(AppFont.headline())
+                                    .foregroundStyle(AppColor.textPrimary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
+                            .cardStyle()
                         }
+                    } else {
+                        Text("Nenhum treino cadastrado pra hoje ainda. Toque em sincronizar ou confira a aba Rotina.")
+                            .foregroundStyle(AppColor.textSecondary)
+                            .padding()
                     }
-                } else {
-                    Text("Nenhum treino cadastrado pra hoje ainda. Toque em sincronizar ou confira a aba Rotina.")
-                        .foregroundStyle(.secondary)
                 }
+                .padding(16)
             }
+            .screenBackground()
             .navigationTitle("Hoje")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -72,6 +79,7 @@ struct TodayView: View {
                             Image(systemName: "arrow.triangle.2.circlepath")
                         }
                     }
+                    .tint(AppColor.strength)
                 }
             }
             .sheet(item: $addSetTarget) { re in
@@ -85,56 +93,87 @@ struct TodayView: View {
         }
     }
 
-    private func exerciseRow(_ re: RoutineExercise) -> some View {
+    private func header(for day: RoutineDay) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(RoutineDay.weekdayNames[day.weekday].uppercased())
+                    .font(AppFont.caption(12))
+                    .foregroundStyle(AppColor.textSecondary)
+                Text(day.name)
+                    .font(AppFont.largeTitle(28))
+                    .foregroundStyle(AppColor.textPrimary)
+            }
+            Spacer()
+            Image(systemName: day.kind.symbol)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(day.kind.accentColor)
+                .padding(14)
+                .background(day.kind.accentColor.opacity(0.16), in: Circle())
+        }
+    }
+
+    private func cardioCard(day: RoutineDay, type: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                TagView(text: type.capitalized, color: AppColor.cardio, systemImage: "figure.run")
+                Spacer()
+                if let minMin = day.cardioMinutesMin, let minMax = day.cardioMinutesMax {
+                    Text("\(minMin)-\(minMax) min")
+                        .font(AppFont.numeric(14))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+            }
+            if let notes = day.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(AppFont.caption(13))
+                    .foregroundStyle(AppColor.textSecondary)
+            }
+            HStack {
+                Text("Minutos feitos")
+                    .font(AppFont.body(14))
+                    .foregroundStyle(AppColor.textPrimary)
+                Spacer()
+                TextField("0", text: $cardioMinutesText)
+                    .keyboardType(.numberPad)
+                    .font(AppFont.numeric(16))
+                    .foregroundStyle(AppColor.textPrimary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 60)
+                    .padding(.vertical, 8).padding(.horizontal, 10)
+                    .background(AppColor.surfaceElevated, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                Button("Salvar") { saveCardio(type: type) }
+                    .font(AppFont.caption(13).weight(.bold))
+                    .foregroundStyle(AppColor.cardio)
+            }
+        }
+        .cardStyle()
+    }
+
+    private func exerciseCard(_ re: RoutineExercise) -> some View {
         let loggedCount = todaySession?.loggedSets.filter { $0.exercise?.id == re.exercise?.id }.count ?? 0
         return Button {
             addSetTarget = re
         } label: {
-            HStack {
-                VStack(alignment: .leading) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(re.exercise?.name ?? "—")
-                        .foregroundStyle(.primary)
+                        .font(AppFont.headline())
+                        .foregroundStyle(AppColor.textPrimary)
                     Text("\(re.targetSets ?? 0)x\(re.repsRangeLabel) · descanso \(re.targetRestSeconds ?? 0)s")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(AppFont.caption(12))
+                        .foregroundStyle(AppColor.textSecondary)
                 }
                 Spacer()
                 if loggedCount > 0 {
-                    Text("\(loggedCount) série(s)")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    TagView(text: "\(loggedCount)", color: AppColor.success, systemImage: "checkmark")
                 }
                 Image(systemName: "plus.circle.fill")
-                    .foregroundStyle(.blue)
+                    .font(.system(size: 22))
+                    .foregroundStyle(AppColor.strength)
             }
         }
         .buttonStyle(.plain)
-    }
-
-    private func cardioRow(type: String, minMin: Int?, minMax: Int?, notes: String?) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(type.capitalized)
-                Spacer()
-                if let minMin, let minMax {
-                    Text("\(minMin)-\(minMax) min").foregroundStyle(.secondary)
-                } else if let minMin {
-                    Text("\(minMin)+ min").foregroundStyle(.secondary)
-                }
-            }
-            if let notes, !notes.isEmpty {
-                Text(notes).font(.caption).foregroundStyle(.secondary)
-            }
-            HStack {
-                Text("Minutos feitos:")
-                TextField("ex: 30", text: $cardioMinutesText)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                Button("Salvar") { saveCardio(type: type) }
-                    .buttonStyle(.bordered)
-            }
-        }
+        .cardStyle()
     }
 
     private func saveCardio(type: String) {

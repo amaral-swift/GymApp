@@ -58,6 +58,8 @@ struct AddSetSheet: View {
                 }
             }
             .navigationTitle("Registrar série")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fechar") { dismiss() }

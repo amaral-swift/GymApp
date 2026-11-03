@@ -38,6 +38,8 @@ struct HistoryView: View {
                 }
             }
             .navigationTitle("Histórico")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
         }
     }
 }
@@ -81,6 +83,8 @@ struct SessionDetailView: View {
             }
         }
         .navigationTitle(session.routineDay?.name ?? "Treino")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
     }
 
     private func weightLabel(_ value: Double?) -> String {

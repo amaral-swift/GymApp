@@ -24,6 +24,8 @@ struct ExerciseLibraryView: View {
                 .onDelete(perform: delete)
             }
             .navigationTitle("Exercícios")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAdd = true } label: { Image(systemName: "plus") }
@@ -56,6 +58,8 @@ struct AddExerciseSheet: View {
                 TextField("Observações", text: $notes)
             }
             .navigationTitle("Novo exercício")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Fechar") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -104,6 +108,8 @@ struct ExerciseDetailView: View {
             }
         }
         .navigationTitle(exercise.name)
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
     }
 
     private func weightLabel(_ value: Double?) -> String {

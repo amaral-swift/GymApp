@@ -9,7 +9,7 @@ struct RootTabView: View {
     var body: some View {
         TabView {
             TodayView()
-                .tabItem { Label("Hoje", systemImage: "figure.strengthtraining.traditional") }
+                .tabItem { Label("Hoje", systemImage: "dumbbell.fill") }
 
             HistoryView()
                 .tabItem { Label("Histórico", systemImage: "clock.arrow.circlepath") }
@@ -20,6 +20,10 @@ struct RootTabView: View {
             ExerciseLibraryView()
                 .tabItem { Label("Exercícios", systemImage: "list.bullet") }
         }
+        .tint(AppColor.strength)
+        .toolbarBackground(AppColor.surface, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .task {
             guard !didSeedAndSync else { return }
             didSeedAndSync = true

@@ -15,70 +15,88 @@ struct AuthView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Spacer()
+            ZStack {
+                AppColor.background.ignoresSafeArea()
 
-                VStack(spacing: 4) {
-                    Text("GymApp")
-                        .font(.largeTitle.bold())
-                    Text("Seu treino, acompanhado pelo Claude")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                VStack(spacing: 28) {
+                    Spacer(minLength: 20)
 
-                Picker("Modo", selection: $mode) {
-                    ForEach(Mode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
+                    VStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColor.strength.opacity(0.18))
+                                .frame(width: 92, height: 92)
+                            Image(systemName: "dumbbell.fill")
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundStyle(AppColor.strength)
+                        }
 
-                VStack(spacing: 12) {
-                    TextField("E-mail", text: $email)
-                        .textContentType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.emailAddress)
-                        .padding(12)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-
-                    SecureField("Senha", text: $password)
-                        .textContentType(mode == .signIn ? .password : .newPassword)
-                        .padding(12)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(.horizontal)
-
-                if let error = auth.lastError {
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal)
-                }
-
-                Button {
-                    Task { await submit() }
-                } label: {
-                    if isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text(mode.rawValue)
-                            .frame(maxWidth: .infinity)
+                        VStack(spacing: 4) {
+                            Text("GymApp")
+                                .font(AppFont.largeTitle(34))
+                                .foregroundStyle(AppColor.textPrimary)
+                            Text("Seu treino, acompanhado pelo Claude")
+                                .font(AppFont.body(14))
+                                .foregroundStyle(AppColor.textSecondary)
+                        }
                     }
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.horizontal)
-                .disabled(email.isEmpty || password.count < 6 || isLoading)
 
-                if mode == .signUp {
-                    Text("Use o e-mail e senha que você quiser — essa conta é só sua, pra guardar seus treinos.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
+                    Picker("Modo", selection: $mode) {
+                        ForEach(Mode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 32)
 
-                Spacer()
+                    VStack(spacing: 12) {
+                        TextField("", text: $email, prompt: Text("E-mail").foregroundStyle(AppColor.textSecondary))
+                            .textContentType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .foregroundStyle(AppColor.textPrimary)
+                            .padding(14)
+                            .background(AppColor.surface, in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous))
+
+                        SecureField("", text: $password, prompt: Text("Senha").foregroundStyle(AppColor.textSecondary))
+                            .textContentType(mode == .signIn ? .password : .newPassword)
+                            .foregroundStyle(AppColor.textPrimary)
+                            .padding(14)
+                            .background(AppColor.surface, in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous))
+                    }
+                    .padding(.horizontal, 24)
+
+                    if let error = auth.lastError {
+                        Text(error)
+                            .font(AppFont.caption(13))
+                            .foregroundStyle(AppColor.danger)
+                            .padding(.horizontal, 24)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Button {
+                        Task { await submit() }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .tint(.black)
+                        } else {
+                            Text(mode.rawValue)
+                        }
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding(.horizontal, 24)
+                    .disabled(email.isEmpty || password.count < 6 || isLoading)
+
+                    if mode == .signUp {
+                        Text("Use o e-mail e senha que você quiser — essa conta é só sua, pra guardar seus treinos.")
+                            .font(AppFont.caption(12))
+                            .foregroundStyle(AppColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+
+                    Spacer()
+                }
             }
         }
     }

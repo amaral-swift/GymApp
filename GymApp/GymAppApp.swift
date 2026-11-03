@@ -45,6 +45,9 @@ struct GymAppApp: App {
             }
             .environmentObject(auth)
             .environmentObject(syncService)
+            .tint(AppColor.strength)
+            .preferredColorScheme(.dark)
+            .background(AppColor.background.ignoresSafeArea())
         }
         .modelContainer(sharedModelContainer)
     }

@@ -55,6 +55,8 @@ struct RoutineView: View {
                 }
             }
             .navigationTitle("Rotina semanal")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .sheet(item: $addExerciseDay) { day in
                 AddRoutineExerciseSheet(day: day)
             }
@@ -103,6 +105,8 @@ struct EditRoutineExerciseSheet: View {
                 TextField("Observações", text: $notes)
             }
             .navigationTitle(routineExercise.exercise?.name ?? "Exercício")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Fechar") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -165,6 +169,8 @@ struct AddRoutineExerciseSheet: View {
             }
             .searchable(text: $searchText)
             .navigationTitle("Adicionar exercício")
+            .scrollContentBackground(.hidden)
+            .background(AppColor.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Fechar") { dismiss() } }
             }
