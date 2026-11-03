@@ -11,6 +11,12 @@ struct RoutineView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Text("Os treinos de musculação seguem em sequência (Superior A → Inferior A → Superior B → Inferior B), não presos a um dia fixo. Se você pular um dia, o próximo treino continua de onde parou. Corrida e pedal continuam nos dias certos.")
+                        .font(AppFont.caption(12))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+
                 ForEach(days) { day in
                     Section {
                         if let cardioType = day.cardioType {
@@ -46,7 +52,11 @@ struct RoutineView: View {
                             Label("Adicionar exercício", systemImage: "plus")
                         }
                     } header: {
-                        Text("\(RoutineDay.weekdayNames[day.weekday]) · \(day.name)")
+                        if day.kind == .lifting {
+                            Text("Treino \(day.position) · \(day.name)")
+                        } else {
+                            Text("\(RoutineDay.weekdayNames[day.weekday]) · \(day.name)")
+                        }
                     } footer: {
                         if let notes = day.notes, !notes.isEmpty {
                             Text(notes)
