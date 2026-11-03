@@ -19,6 +19,9 @@ struct RootTabView: View {
 
             ExerciseLibraryView()
                 .tabItem { Label("Exercícios", systemImage: "list.bullet") }
+
+            ProfileView()
+                .tabItem { Label("Perfil", systemImage: "person.crop.circle") }
         }
         .tint(AppColor.strength)
         .toolbarBackground(AppColor.surface, for: .tabBar)

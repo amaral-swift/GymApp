@@ -10,6 +10,7 @@ import SwiftData
 struct GymAppApp: App {
     @StateObject private var auth = SupabaseAuthManager()
     @StateObject private var syncService: SyncService
+    @StateObject private var stravaAuth = StravaAuthManager()
 
     init() {
         let authManager = SupabaseAuthManager()
@@ -45,9 +46,15 @@ struct GymAppApp: App {
             }
             .environmentObject(auth)
             .environmentObject(syncService)
+            .environmentObject(stravaAuth)
             .tint(AppColor.strength)
             .preferredColorScheme(.dark)
             .background(AppColor.background.ignoresSafeArea())
+            .onOpenURL { url in
+                // ASWebAuthenticationSession já trata o callback via completion handler;
+                // isso aqui é só uma rede de segurança caso o sistema abra a URL diretamente.
+                _ = url
+            }
         }
         .modelContainer(sharedModelContainer)
     }

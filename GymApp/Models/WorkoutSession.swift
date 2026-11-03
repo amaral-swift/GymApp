@@ -11,6 +11,8 @@ final class WorkoutSession: Identifiable {
     var cardioMinutes: Int?
     var cardioType: String?
     var notes: String?
+    /// Preenchido quando essa sessão veio de uma atividade importada do Strava (evita duplicar).
+    var stravaActivityId: Int64?
     var createdAt: Date
     var needsSync: Bool
 
@@ -26,6 +28,7 @@ final class WorkoutSession: Identifiable {
         cardioMinutes: Int? = nil,
         cardioType: String? = nil,
         notes: String? = nil,
+        stravaActivityId: Int64? = nil,
         createdAt: Date = .now,
         needsSync: Bool = true
     ) {
@@ -37,6 +40,7 @@ final class WorkoutSession: Identifiable {
         self.cardioMinutes = cardioMinutes
         self.cardioType = cardioType
         self.notes = notes
+        self.stravaActivityId = stravaActivityId
         self.createdAt = createdAt
         self.needsSync = needsSync
     }
