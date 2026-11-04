@@ -97,7 +97,6 @@ struct TodayView: View {
                             .padding()
                     } else {
                         if !liftingDays.isEmpty {
-                            SectionHeaderLabel(text: "Próximo treino")
                             daySwitcher
                             if let day = activeLiftingDay {
                                 liftingCard(day)
