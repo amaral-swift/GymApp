@@ -6,7 +6,12 @@ struct AddSetSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let routineExercise: RoutineExercise
-    let session: WorkoutSession
+    /// Sessão de hoje pra esse treino, se já existir — só pra exibir as séries já feitas.
+    /// É opcional de propósito: a sessão só é criada de verdade quando a primeira série é salva,
+    /// pra não deixar sessões vazias "fantasma" no histórico.
+    let existingSession: WorkoutSession?
+    /// Cria (ou reaproveita) a sessão de hoje pro treino certo, só quando o usuário de fato salva uma série.
+    let resolveSession: () -> WorkoutSession
 
     @State private var weightText: String = ""
     @State private var repsText: String = ""
@@ -14,7 +19,7 @@ struct AddSetSheet: View {
     @State private var notes: String = ""
 
     private var existingSetsForExercise: [LoggedSet] {
-        session.loggedSets
+        (existingSession?.loggedSets ?? [])
             .filter { $0.exercise?.id == routineExercise.exercise?.id }
             .sorted { $0.setNumber < $1.setNumber }
     }
@@ -74,7 +79,9 @@ struct AddSetSheet: View {
 
     private func save() {
         guard let exercise = routineExercise.exercise else { return }
-        let nextNumber = (existingSetsForExercise.map(\.setNumber).max() ?? 0) + 1
+        let session = resolveSession()
+        let currentSets = session.loggedSets.filter { $0.exercise?.id == exercise.id }
+        let nextNumber = (currentSets.map(\.setNumber).max() ?? 0) + 1
         let set = LoggedSet(
             session: session,
             exercise: exercise,

@@ -11,17 +11,24 @@ struct TodayView: View {
     @State private var isSyncing = false
     @State private var addSetTarget: RoutineExercise?
     @State private var cardioMinutesText: String = ""
+    /// Quando o usuário escolhe manualmente qual treino de musculação está fazendo hoje,
+    /// substituindo a sugestão automática. Fica só na memória (não precisa persistir).
+    @State private var manualLiftingDayID: UUID?
+
+    private var liftingDays: [RoutineDay] {
+        allDays.filter { $0.kind == .lifting }.sorted { $0.position < $1.position }
+    }
 
     /// Dia de referência do calendário (pra corrida/pedal, que ficam fixos em dias certos).
     private var todaySchedule: RoutineDay? {
         allDays.first { $0.weekday == Date().isoWeekday }
     }
 
-    /// Próximo treino de musculação na sequência (Superior A → Inferior A → Superior B → Inferior B),
-    /// baseado no último treino concluído — não no dia da semana. Assim, se você pula um dia,
-    /// o próximo treino continua de onde parou, em vez de pular pro "treino do dia" seguinte.
-    private var nextLiftingDay: RoutineDay? {
-        let liftingDays = allDays.filter { $0.kind == .lifting }.sorted { $0.position < $1.position }
+    /// Sugestão de próximo treino de musculação na sequência (Superior A → Inferior A → Superior B → Inferior B),
+    /// baseada no último treino concluído — não no dia da semana. Assim, se você pula um dia,
+    /// a sugestão continua de onde parou, em vez de pular pro "treino do dia" seguinte.
+    /// É só uma sugestão: o usuário pode trocar no seletor de treino abaixo.
+    private var suggestedLiftingDay: RoutineDay? {
         guard !liftingDays.isEmpty else { return nil }
 
         let lastCompleted = allSessions
@@ -41,8 +48,12 @@ struct TodayView: View {
         return liftingDays[(lastIndex + 1) % liftingDays.count]
     }
 
-    private var todaySession: WorkoutSession? {
-        allSessions.first { Calendar.current.isDate($0.sessionDate, inSameDayAs: .now) }
+    /// O treino de musculação que está ativo na tela agora: a escolha manual, se houver, senão a sugestão.
+    private var activeLiftingDay: RoutineDay? {
+        if let manualLiftingDayID, let match = liftingDays.first(where: { $0.id == manualLiftingDayID }) {
+            return match
+        }
+        return suggestedLiftingDay
     }
 
     private var streakResult: StreakCalculator.Result {
@@ -50,6 +61,27 @@ struct TodayView: View {
             .filter { !$0.loggedSets.isEmpty || ($0.cardioMinutes ?? 0) > 0 }
             .map(\.sessionDate)
         return StreakCalculator.compute(activeDays: activeDates)
+    }
+
+    /// Sessão de HOJE pra um treino específico (musculação ou cardio) — nunca é criada aqui,
+    /// só procurada. Cada treino do dia tem a sua própria sessão, então cardio e musculação
+    /// no mesmo dia não se misturam.
+    private func existingSession(for day: RoutineDay?) -> WorkoutSession? {
+        guard let day else { return nil }
+        return allSessions.first {
+            Calendar.current.isDate($0.sessionDate, inSameDayAs: .now) && $0.routineDay?.id == day.id
+        }
+    }
+
+    /// Cria a sessão de hoje pro treino certo só quando realmente precisa (ao salvar uma série ou o cardio) —
+    /// nunca ao simplesmente abrir a tela ou o formulário, pra não deixar sessões vazias no histórico.
+    @discardableResult
+    private func findOrCreateSession(for day: RoutineDay?) -> WorkoutSession {
+        if let existing = existingSession(for: day) { return existing }
+        let session = WorkoutSession(routineDay: day, sessionDate: .now, startedAt: .now)
+        context.insert(session)
+        try? context.save()
+        return session
     }
 
     var body: some View {
@@ -64,9 +96,12 @@ struct TodayView: View {
                             .foregroundStyle(AppColor.textSecondary)
                             .padding()
                     } else {
-                        if let liftingDay = nextLiftingDay {
+                        if !liftingDays.isEmpty {
                             SectionHeaderLabel(text: "Próximo treino")
-                            liftingCard(liftingDay)
+                            daySwitcher
+                            if let day = activeLiftingDay {
+                                liftingCard(day)
+                            }
                         }
 
                         if let schedule = todaySchedule, let cardioType = schedule.cardioType {
@@ -99,10 +134,14 @@ struct TodayView: View {
                 }
             }
             .sheet(item: $addSetTarget) { re in
-                AddSetSheet(routineExercise: re, session: ensureTodaySession())
+                AddSetSheet(
+                    routineExercise: re,
+                    existingSession: existingSession(for: activeLiftingDay),
+                    resolveSession: { findOrCreateSession(for: activeLiftingDay) }
+                )
             }
             .onAppear {
-                if let existing = todaySession?.cardioMinutes {
+                if let existing = existingSession(for: todaySchedule)?.cardioMinutes {
                     cardioMinutesText = String(existing)
                 }
             }
@@ -153,14 +192,47 @@ struct TodayView: View {
         .cardStyle()
     }
 
+    /// Seletor horizontal dos 4 treinos de musculação, pra escolher manualmente qual fazer hoje
+    /// quando a sugestão automática não bater com o que você quer treinar.
+    private var daySwitcher: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Qual treino você vai fazer hoje?")
+                .font(AppFont.caption(12))
+                .foregroundStyle(AppColor.textSecondary)
+            HStack(spacing: 8) {
+                ForEach(liftingDays) { day in
+                    let isActive = activeLiftingDay?.id == day.id
+                    Button {
+                        manualLiftingDayID = day.id
+                    } label: {
+                        Text(day.name)
+                            .font(AppFont.caption(12).weight(isActive ? .bold : .regular))
+                            .foregroundStyle(isActive ? AppColor.strength : AppColor.textSecondary)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                isActive ? AppColor.strength.opacity(0.18) : AppColor.surfaceElevated,
+                                in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     private func liftingCard(_ day: RoutineDay) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let session = existingSession(for: day)
+        let isManualOverride = manualLiftingDayID != nil && day.id != suggestedLiftingDay?.id
+        return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(day.name)
                         .font(AppFont.title(22))
                         .foregroundStyle(AppColor.textPrimary)
-                    Text("Treino \(day.position) de 4 na sequência")
+                    Text(isManualOverride
+                         ? "Escolhido manualmente · a sequência continua a partir daqui"
+                         : "Treino \(day.position) de 4 na sequência")
                         .font(AppFont.caption(12))
                         .foregroundStyle(AppColor.textSecondary)
                 }
@@ -174,15 +246,15 @@ struct TodayView: View {
 
             VStack(spacing: 10) {
                 ForEach(day.exercises.sorted(by: { $0.position < $1.position })) { re in
-                    exerciseRow(re)
+                    exerciseRow(re, session: session)
                 }
             }
         }
         .cardStyle()
     }
 
-    private func exerciseRow(_ re: RoutineExercise) -> some View {
-        let loggedCount = todaySession?.loggedSets.filter { $0.exercise?.id == re.exercise?.id }.count ?? 0
+    private func exerciseRow(_ re: RoutineExercise, session: WorkoutSession?) -> some View {
+        let loggedCount = session?.loggedSets.filter { $0.exercise?.id == re.exercise?.id }.count ?? 0
         return Button {
             addSetTarget = re
         } label: {
@@ -238,7 +310,7 @@ struct TodayView: View {
                     .frame(width: 60)
                     .padding(.vertical, 8).padding(.horizontal, 10)
                     .background(AppColor.surfaceElevated, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                Button("Salvar") { saveCardio(type: type) }
+                Button("Salvar") { saveCardio(day: day, type: type) }
                     .font(AppFont.caption(13).weight(.bold))
                     .foregroundStyle(AppColor.cardio)
             }
@@ -246,20 +318,11 @@ struct TodayView: View {
         .cardStyle()
     }
 
-    private func saveCardio(type: String) {
-        let session = ensureTodaySession()
+    private func saveCardio(day: RoutineDay, type: String) {
+        let session = findOrCreateSession(for: day)
         session.cardioType = type
         session.cardioMinutes = Int(cardioMinutesText)
         session.needsSync = true
         try? context.save()
-    }
-
-    @discardableResult
-    private func ensureTodaySession() -> WorkoutSession {
-        if let existing = todaySession { return existing }
-        let session = WorkoutSession(routineDay: nextLiftingDay, sessionDate: .now, startedAt: .now)
-        context.insert(session)
-        try? context.save()
-        return session
     }
 }

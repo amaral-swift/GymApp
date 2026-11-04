@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct HistoryView: View {
+    @Environment(\.modelContext) private var context
+    @EnvironmentObject private var syncService: SyncService
     @Query(sort: [SortDescriptor(\WorkoutSession.sessionDate, order: .reverse)]) private var sessions: [WorkoutSession]
 
     var body: some View {
@@ -26,6 +28,8 @@ struct HistoryView: View {
                             HStack(spacing: 12) {
                                 if !session.loggedSets.isEmpty {
                                     Label("\(session.loggedSets.count) séries", systemImage: "dumbbell")
+                                } else if session.cardioMinutes == nil {
+                                    Label("Vazio", systemImage: "exclamationmark.circle")
                                 }
                                 if let minutes = session.cardioMinutes {
                                     Label("\(minutes) min \(session.cardioType ?? "")", systemImage: "figure.run")
@@ -36,10 +40,20 @@ struct HistoryView: View {
                         }
                     }
                 }
+                .onDelete(perform: deleteSessions)
             }
             .navigationTitle("Histórico")
             .scrollContentBackground(.hidden)
             .background(AppColor.background)
+        }
+    }
+
+    private func deleteSessions(at offsets: IndexSet) {
+        let toDelete = offsets.map { sessions[$0] }
+        for session in toDelete {
+            Task {
+                await syncService.deleteSession(session, context: context)
+            }
         }
     }
 }

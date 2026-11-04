@@ -92,6 +92,20 @@ final class SyncService: ObservableObject {
         }
     }
 
+    /// Apaga uma sessão de treino (e suas séries, por cascade) tanto no Supabase quanto localmente.
+    /// Usado pra limpar sessões criadas por engano ou vazias no Histórico.
+    func deleteSession(_ session: WorkoutSession, context: ModelContext) async {
+        if auth.isAuthenticated {
+            do {
+                try await rest.delete("workout_sessions", id: session.id)
+            } catch {
+                print("Sync: falha ao apagar sessão remota: \(error)")
+            }
+        }
+        context.delete(session)
+        try? context.save()
+    }
+
     private func upsertRemote<T: Encodable>(_ table: String, _ dto: T) async -> Bool {
         do {
             let body = try SupabaseJSON.encoder.encode(dto)
