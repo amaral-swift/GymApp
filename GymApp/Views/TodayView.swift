@@ -149,14 +149,9 @@ struct TodayView: View {
     }
 
     private var dateHeader: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased())
-                .font(AppFont.caption(12))
-                .foregroundStyle(AppColor.textSecondary)
-            Text("Hoje")
-                .font(AppFont.largeTitle(28))
-                .foregroundStyle(AppColor.textPrimary)
-        }
+        Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased())
+            .font(AppFont.caption(12))
+            .foregroundStyle(AppColor.textSecondary)
     }
 
     private var streakCard: some View {
