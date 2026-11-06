@@ -135,18 +135,8 @@ struct TodayView: View {
                 .padding(.bottom, 16)
             }
             .screenBackground()
-            .navigationTitle("Hoje")
+            .navigationTitle("")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 15))
-                            .foregroundStyle(AppColor.strength)
-                        Text("\(streakResult.current)")
-                            .font(AppFont.numeric(15, weight: .bold))
-                            .foregroundStyle(AppColor.textPrimary)
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -180,29 +170,45 @@ struct TodayView: View {
     }
 
     private var dateHeader: some View {
-        Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased())
-            .font(AppFont.caption(12))
-            .foregroundStyle(AppColor.textSecondary)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(Date().formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased())
+                .font(AppFont.caption(12))
+                .foregroundStyle(AppColor.textSecondary)
+            HStack(alignment: .center) {
+                Text("Hoje")
+                    .font(AppFont.largeTitle(28))
+                    .foregroundStyle(AppColor.textPrimary)
+                Spacer()
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColor.strength)
+                    Text("\(streakResult.current)")
+                        .font(AppFont.numeric(18, weight: .bold))
+                        .foregroundStyle(AppColor.textPrimary)
+                }
+            }
+        }
     }
 
     /// Seletor horizontal dos 4 treinos de musculação, pra escolher manualmente qual fazer hoje
     /// quando a sugestão automática não bater com o que você quer treinar. Só aparece antes de
     /// iniciar o treino — depois de iniciado, o treino de hoje já está decidido.
     private var daySwitcher: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Qual treino você vai fazer hoje?")
-                .font(AppFont.caption(11))
+                .font(AppFont.caption(12))
                 .foregroundStyle(AppColor.textSecondary)
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ForEach(liftingDays) { day in
                     let isActive = activeLiftingDay?.id == day.id
                     Button {
                         manualLiftingDayID = day.id
                     } label: {
                         Text(day.name)
-                            .font(AppFont.caption(11).weight(isActive ? .bold : .regular))
+                            .font(AppFont.caption(12).weight(isActive ? .bold : .regular))
                             .foregroundStyle(isActive ? AppColor.strength : AppColor.textSecondary)
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
                             .background(
                                 isActive ? AppColor.strength.opacity(0.18) : AppColor.surfaceElevated,
@@ -259,27 +265,27 @@ struct TodayView: View {
     /// a lista de exercícios (só pra visualizar, não dá pra registrar série ainda) e o botão
     /// pra iniciar de fato. Substitui o card vazio que ficava só com o seletor.
     private func liftingPreviewCard(_ day: RoutineDay) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(day.name)
-                        .font(AppFont.title(20))
+                        .font(AppFont.title(22))
                         .foregroundStyle(AppColor.textPrimary)
                     Text("Treino \(day.position) de 4 na sequência")
-                        .font(AppFont.caption(11))
+                        .font(AppFont.caption(12))
                         .foregroundStyle(AppColor.textSecondary)
                 }
                 Spacer()
                 Image(systemName: "dumbbell.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(AppColor.strength)
-                    .padding(9)
+                    .padding(12)
                     .background(AppColor.strength.opacity(0.16), in: Circle())
             }
 
             daySwitcher
 
-            VStack(spacing: 2) {
+            VStack(spacing: 10) {
                 ForEach(day.exercises.sorted(by: { $0.position < $1.position })) { re in
                     exercisePreviewRow(re)
                 }
@@ -291,20 +297,19 @@ struct TodayView: View {
     }
 
     private func exercisePreviewRow(_ re: RoutineExercise) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(AppColor.strength.opacity(0.5))
-                .frame(width: 4, height: 4)
-            Text(re.exercise?.name ?? "—")
-                .font(AppFont.body(13))
-                .foregroundStyle(AppColor.textPrimary)
-                .lineLimit(1)
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(re.exercise?.name ?? "—")
+                    .font(AppFont.headline(15))
+                    .foregroundStyle(AppColor.textPrimary)
+                Text("\(re.targetSets ?? 0)x\(re.repsRangeLabel) · descanso \(re.targetRestSeconds ?? 0)s")
+                    .font(AppFont.caption(12))
+                    .foregroundStyle(AppColor.textSecondary)
+            }
             Spacer()
-            Text("\(re.targetSets ?? 0)x\(re.repsRangeLabel)")
-                .font(AppFont.caption(11))
-                .foregroundStyle(AppColor.textSecondary)
         }
-        .padding(.vertical, 3)
+        .padding(10)
+        .background(AppColor.surfaceElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous))
     }
 
     private func liftingCard(_ day: RoutineDay) -> some View {
