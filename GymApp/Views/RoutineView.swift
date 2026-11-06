@@ -12,7 +12,7 @@ struct RoutineView: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Os treinos de musculação seguem em sequência (Superior A → Inferior A → Superior B → Inferior B), não presos a um dia fixo. Se você pular um dia, o próximo treino continua de onde parou. Corrida e pedal continuam nos dias certos.")
+                    Text("Os treinos de musculação seguem em sequência (Superior A → Inferior A → Superior B → Inferior B), não presos a um dia fixo. Se você pular um dia, a sugestão do próximo treino continua de onde parou. Na aba Hoje, toque em \"Iniciar treino\" pra confirmar qual vai fazer — depois disso ele fica fixo até o dia seguinte. Corrida e pedal continuam nos dias certos.")
                         .font(AppFont.caption(12))
                         .foregroundStyle(AppColor.textSecondary)
                 }

@@ -11,8 +11,10 @@ struct TodayView: View {
     @State private var isSyncing = false
     @State private var addSetTarget: RoutineExercise?
     @State private var cardioMinutesText: String = ""
-    /// Quando o usuário escolhe manualmente qual treino de musculação está fazendo hoje,
-    /// substituindo a sugestão automática. Fica só na memória (não precisa persistir).
+    /// Escolha manual de qual treino fazer hoje, feita ANTES de iniciar o treino.
+    /// Depois que o treino é iniciado, quem manda é a sessão de hoje (`todayLiftingSession`),
+    /// não isso aqui — assim a tela não pula pro próximo treino da sequência no meio do treino
+    /// só porque você registrou uma série.
     @State private var manualLiftingDayID: UUID?
 
     private var liftingDays: [RoutineDay] {
@@ -25,9 +27,8 @@ struct TodayView: View {
     }
 
     /// Sugestão de próximo treino de musculação na sequência (Superior A → Inferior A → Superior B → Inferior B),
-    /// baseada no último treino concluído — não no dia da semana. Assim, se você pula um dia,
-    /// a sugestão continua de onde parou, em vez de pular pro "treino do dia" seguinte.
-    /// É só uma sugestão: o usuário pode trocar no seletor de treino abaixo.
+    /// baseada no último treino concluído — não no dia da semana. Só é usada ANTES de iniciar o treino de hoje;
+    /// uma vez iniciado, a sessão de hoje já diz qual é o treino, e essa sugestão para de importar até o dia seguinte.
     private var suggestedLiftingDay: RoutineDay? {
         guard !liftingDays.isEmpty else { return nil }
 
@@ -48,8 +49,23 @@ struct TodayView: View {
         return liftingDays[(lastIndex + 1) % liftingDays.count]
     }
 
-    /// O treino de musculação que está ativo na tela agora: a escolha manual, se houver, senão a sugestão.
+    /// Sessão de musculação de HOJE, se o treino já tiver sido iniciado — uma por dia, no máximo.
+    /// Uma vez que ela existe, o treino de hoje é esse e pronto, não importa quantas séries
+    /// já foram registradas nela.
+    private var todayLiftingSession: WorkoutSession? {
+        allSessions.first {
+            Calendar.current.isDate($0.sessionDate, inSameDayAs: .now) && $0.routineDay?.kind == .lifting
+        }
+    }
+
+    private var hasStartedToday: Bool { todayLiftingSession != nil }
+
+    /// O treino de musculação ativo na tela: se já foi iniciado hoje, é sempre o mesmo (não muda mais);
+    /// senão, é a escolha manual (se houver) ou a sugestão.
     private var activeLiftingDay: RoutineDay? {
+        if let started = todayLiftingSession?.routineDay {
+            return started
+        }
         if let manualLiftingDayID, let match = liftingDays.first(where: { $0.id == manualLiftingDayID }) {
             return match
         }
@@ -73,8 +89,9 @@ struct TodayView: View {
         }
     }
 
-    /// Cria a sessão de hoje pro treino certo só quando realmente precisa (ao salvar uma série ou o cardio) —
-    /// nunca ao simplesmente abrir a tela ou o formulário, pra não deixar sessões vazias no histórico.
+    /// Cria a sessão de hoje pro treino certo só quando realmente precisa (ao iniciar o treino,
+    /// registrar uma série ou salvar o cardio) — nunca só por abrir a tela, pra não deixar
+    /// sessões vazias no histórico.
     @discardableResult
     private func findOrCreateSession(for day: RoutineDay?) -> WorkoutSession {
         if let existing = existingSession(for: day) { return existing }
@@ -97,9 +114,16 @@ struct TodayView: View {
                             .padding()
                     } else {
                         if !liftingDays.isEmpty {
-                            daySwitcher
-                            if let day = activeLiftingDay {
+                            if hasStartedToday, let day = activeLiftingDay {
                                 liftingCard(day)
+                                if canCancelTodayWorkout {
+                                    cancelWorkoutButton
+                                }
+                            } else {
+                                daySwitcher
+                                if let day = activeLiftingDay {
+                                    startWorkoutButton(for: day)
+                                }
                             }
                         }
 
@@ -187,7 +211,8 @@ struct TodayView: View {
     }
 
     /// Seletor horizontal dos 4 treinos de musculação, pra escolher manualmente qual fazer hoje
-    /// quando a sugestão automática não bater com o que você quer treinar.
+    /// quando a sugestão automática não bater com o que você quer treinar. Só aparece antes de
+    /// iniciar o treino — depois de iniciado, o treino de hoje já está decidido.
     private var daySwitcher: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Qual treino você vai fazer hoje?")
@@ -215,18 +240,55 @@ struct TodayView: View {
         }
     }
 
+    /// Botão que de fato começa o treino de hoje: cria a sessão pro dia escolhido/sugerido.
+    /// A partir daqui esse é o treino do dia, até virar a data.
+    private func startWorkoutButton(for day: RoutineDay) -> some View {
+        Button {
+            findOrCreateSession(for: day)
+        } label: {
+            HStack {
+                Image(systemName: "play.fill")
+                Text("Iniciar treino: \(day.name)")
+            }
+            .font(AppFont.headline(15).weight(.bold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(AppColor.strength, in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Só é possível trocar o treino de hoje enquanto nenhuma série foi registrada ainda —
+    /// depois disso, apagar mudaria dados reais, então a troca passa a ser pelo Histórico.
+    private var canCancelTodayWorkout: Bool {
+        guard let session = todayLiftingSession else { return false }
+        return session.loggedSets.isEmpty
+    }
+
+    private var cancelWorkoutButton: some View {
+        Button {
+            if let session = todayLiftingSession {
+                Task { await syncService.deleteSession(session, context: context) }
+            }
+        } label: {
+            Text("Troquei de ideia, escolher outro treino")
+                .font(AppFont.caption(13))
+                .foregroundStyle(AppColor.textSecondary)
+                .underline()
+        }
+        .buttonStyle(.plain)
+    }
+
     private func liftingCard(_ day: RoutineDay) -> some View {
         let session = existingSession(for: day)
-        let isManualOverride = manualLiftingDayID != nil && day.id != suggestedLiftingDay?.id
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(day.name)
                         .font(AppFont.title(22))
                         .foregroundStyle(AppColor.textPrimary)
-                    Text(isManualOverride
-                         ? "Escolhido manualmente · a sequência continua a partir daqui"
-                         : "Treino \(day.position) de 4 na sequência")
+                    Text("Treino de hoje · posição \(day.position) de 4 na sequência")
                         .font(AppFont.caption(12))
                         .foregroundStyle(AppColor.textSecondary)
                 }
