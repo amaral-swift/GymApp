@@ -119,11 +119,8 @@ struct TodayView: View {
                                 if canCancelTodayWorkout {
                                     cancelWorkoutButton
                                 }
-                            } else {
-                                daySwitcher
-                                if let day = activeLiftingDay {
-                                    startWorkoutButton(for: day)
-                                }
+                            } else if let day = activeLiftingDay {
+                                liftingPreviewCard(day)
                             }
                         }
 
@@ -278,6 +275,57 @@ struct TodayView: View {
                 .underline()
         }
         .buttonStyle(.plain)
+    }
+
+    /// Card de pré-visualização do treino antes de iniciar: mostra o seletor de treino,
+    /// a lista de exercícios (só pra visualizar, não dá pra registrar série ainda) e o botão
+    /// pra iniciar de fato. Substitui o card vazio que ficava só com o seletor.
+    private func liftingPreviewCard(_ day: RoutineDay) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(day.name)
+                        .font(AppFont.title(22))
+                        .foregroundStyle(AppColor.textPrimary)
+                    Text("Treino \(day.position) de 4 na sequência")
+                        .font(AppFont.caption(12))
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "dumbbell.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(AppColor.strength)
+                    .padding(12)
+                    .background(AppColor.strength.opacity(0.16), in: Circle())
+            }
+
+            daySwitcher
+
+            VStack(spacing: 10) {
+                ForEach(day.exercises.sorted(by: { $0.position < $1.position })) { re in
+                    exercisePreviewRow(re)
+                }
+            }
+
+            startWorkoutButton(for: day)
+        }
+        .cardStyle()
+    }
+
+    private func exercisePreviewRow(_ re: RoutineExercise) -> some View {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(re.exercise?.name ?? "—")
+                    .font(AppFont.headline(15))
+                    .foregroundStyle(AppColor.textPrimary)
+                Text("\(re.targetSets ?? 0)x\(re.repsRangeLabel) · descanso \(re.targetRestSeconds ?? 0)s")
+                    .font(AppFont.caption(12))
+                    .foregroundStyle(AppColor.textSecondary)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(AppColor.surfaceElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: AppMetrics.smallCornerRadius, style: .continuous))
     }
 
     private func liftingCard(_ day: RoutineDay) -> some View {

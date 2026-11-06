@@ -16,27 +16,27 @@ struct HistoryView: View {
                     NavigationLink {
                         SessionDetailView(session: session)
                     } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(session.routineDay?.name ?? session.cardioType?.capitalized ?? "Treino")
                                     .font(.headline)
-                                Spacer()
-                                Text(session.sessionDate.formatted(date: .abbreviated, time: .omitted))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            HStack(spacing: 12) {
-                                if !session.loggedSets.isEmpty {
-                                    Label("\(session.loggedSets.count) séries", systemImage: "dumbbell")
-                                } else if session.cardioMinutes == nil {
-                                    Label("Vazio", systemImage: "exclamationmark.circle")
+                                HStack(spacing: 12) {
+                                    if !session.loggedSets.isEmpty {
+                                        Label("\(session.loggedSets.count) séries", systemImage: "dumbbell")
+                                    } else if session.cardioMinutes == nil {
+                                        Label("Vazio", systemImage: "exclamationmark.circle")
+                                    }
+                                    if let minutes = session.cardioMinutes {
+                                        Label("\(minutes) min \(session.cardioType ?? "")", systemImage: "figure.run")
+                                    }
                                 }
-                                if let minutes = session.cardioMinutes {
-                                    Label("\(minutes) min \(session.cardioType ?? "")", systemImage: "figure.run")
-                                }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(session.sessionDate.formatted(date: .abbreviated, time: .omitted))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
