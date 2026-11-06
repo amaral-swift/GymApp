@@ -106,6 +106,7 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     dateHeader
+                        .padding(.bottom, 6)
 
                     if allDays.isEmpty {
                         Text("Nenhum treino cadastrado ainda. Toque em sincronizar ou confira a aba Rotina.")
